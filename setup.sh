@@ -218,8 +218,8 @@ cat > /etc/apache2/conf.d/php-fcgid.conf <<EOF
 </IfModule>
 EOF
 
-mkdir -p /srv/www/fcgi-bin.d/php5-default
-ln -s /usr/bin/php5-cgi /srv/www/fcgi-bin.d/php5-default/php-fcgi-wrapper
+mkdir -p /var/www/fcgi-bin.d/php5-default
+ln -s /usr/bin/php5-cgi /var/www/fcgi-bin.d/php5-default/php-fcgi-wrapper
 
 } #end function install_lamp_fcgid
 
