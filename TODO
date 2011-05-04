@@ -1,0 +1,5 @@
+- fix everything
+- get everything working
+- add support for linode
+-- will still work if not using linode, defined in options.conf
+-- use the DNS manager API to integrate with domain.sh
