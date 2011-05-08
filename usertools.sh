@@ -43,6 +43,9 @@ function enable_hosting {
 mkdir -p /srv/www/$USER
 mkdir -p /var/log/www/$USER
 
+# set permissions
+chown $USER:$USER /srv/www/$USER
+
 # link directories to user's home directory
 sudo -u $USER ln -s /srv/www/$USER /home/$USER/public_html
 sudo -u $USER ln -s /var/log/www/$USER /home/$USER/logs
@@ -111,16 +114,20 @@ enableweb)
 	# check if user exists on system
 	check_user_exists
 	if [ $? -ne 0 ]; then
+		echo "User \"$USER\" does not exist on this system."
 		exit 1
 	fi
 
 	# check if user is already set up for hosting
 	check_user_hosting
 	if [ $? -ne 0 ]; then
+		echo "User \"$USER\" is already set up for hosting."
 		exit 1
 	fi
 
 	# enable web hosting for user
 	enable_hosting
+	echo "Successfully setup web hosting for $USER, enjoy!"
+	exit 0
 ;; ## end enableweb ##
 esac

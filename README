@@ -1,3 +1,26 @@
 This is a collection of scripts for setup, configuration, and maintenance of a LAMP server.
 
 These scripts are based off of the scripts available at http://tuxlite.com -- thanks!
+
+
+FILES:
+
+install.sh
+----------
+This is used for the initial installation and setup of your LAMP server.
+
+setup.sh
+--------
+You can use this for a more advanced setup of your LAMP server, as well as setting up advanced features that are not installed by default.
+
+options.conf
+------------
+This file contains the specific options for your server.
+
+usertools.sh
+------------
+This script is used for managing the users on your server.
+
+domain.sh
+---------
+This script is used to manage the domains hosted on your server.

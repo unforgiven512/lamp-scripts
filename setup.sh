@@ -74,7 +74,7 @@ aptitude -y install vim htop lynx dnsutils unzip byobu
 
 } #end function basic_server_setup
 
-
+### DELETE THIS CHUNK ###
 function setup_apt {
 
 #No longer necessary to use the line below for Debian 6 it seems...
@@ -120,6 +120,7 @@ aptitude update
 
 } #end function setup_apt
 
+### DELETE CHUNK ###
 function install_lamp {
 #Install LAMP
 aptitude -y install apache2 libapache2-mod-php5 php5-suhosin php-apc php5-mysql php5-dev php5-curl php5-gd php5-imagick php5-mcrypt php5-memcache php5-mhash php5-pspell php5-snmp php5-sqlite php5-xmlrpc php5-xsl
@@ -135,7 +136,7 @@ a2enmod rewrite
 
 } #end function install_lamp
 
-
+### USE THIS CHUNK ###
 function install_lamp_fcgid {
 #Install LAMP with mpm-worker and fastcgi, adapted from typo3's tutorial.
 aptitude -y install libapache2-mod-fcgid apache2-mpm-worker php5-cgi php5-suhosin php-apc php5-mysql php5-dev php5-curl php5-gd php5-imagick php5-mcrypt php5-memcache php5-mhash php5-pspell php5-snmp php5-sqlite php5-xmlrpc php5-xsl
@@ -224,7 +225,7 @@ ln -s /usr/bin/php5-cgi /var/www/fcgi-bin.d/php5-default/php-fcgi-wrapper
 } #end function install_lamp_fcgid
 
 
-
+### DELETE CHUNK ###
 function install_lamp_phpfpm {
 #Install LAMP with mpm-worker and fastcgi and php-fpm
 aptitude -y install libapache2-mod-fastcgi apache2-mpm-worker php5-cgi php5-suhosin php-apc php5-mysql php5-dev php5-curl php5-gd php5-imagick php5-mcrypt php5-memcache php5-mhash php5-pspell php5-snmp php5-sqlite php5-xmlrpc php5-xsl
