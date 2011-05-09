@@ -6,6 +6,8 @@
 
 # USAGE: ./$SCRIPT_NAME.sh [$ARG1] [$ARG2] [...]
 
+## NOTICE: THIS FILE HAS BEEN DEPRECATED AND WILL BE DELETED FROM FINAL RELEASE
+
 ################################################################################
 #                                                                              #
 #            NOTE: THIS IS A HUGE WORK IN PROGESS -- DO NOT USE IT!            #
