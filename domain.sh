@@ -22,6 +22,19 @@
 source ./options.conf
 source ./constants.conf
 
+## initialize some variables
+# logrotate postrotate
+POSTROTATE_CMD='/etc/init.d/apache2 reload > /dev/null'
+
+# phpmyadmin directory (NOTE: THIS SECTION MAY NOT BE NECESSARY)
+# NOTE: for apt-get installed version:	/usr/share/phpmyadmin/
+#       for self-installed version:	/usr/local/share/phpmyadmin/
+PHPMYADMIN_PATH="/usr/share/phpmyadmin/"
+
+# variables for awstats/phpmyadmin functions (NOTE: PROBABLY NOT NECESSARY)
+# these are the paths to find the pma and awstats symlinks
+FIND_PATH="/srv/www/*/*/"
+VHOST_ROOT="/var/log/www/*/*/" ## not actually the vhost root, but it is where awstats is ;)
 
 ### FUNCTIONS ###
 
@@ -42,7 +55,7 @@ else # NOTE: may not be needed
 fi
 
 # name of the logrotate file
-LOGROTATE_FILE="domain-$DOMAIN_OWNER-$DOMAIN"
+LOGROTATE_FILE="domain-$DOMAIN"
 } # end function 'initialize_variables' #
 
 
@@ -69,8 +82,171 @@ EOF
 # setup awstats directories
 if [ $AWSTATS_ENABLE = 'yes' ]; then
 	mkdir -p $DOMAIN_LOG_PATH/{awstats,awstats/.data}
-	
+	cd $DOMAIN_LOG_PATH/awstats/
+	sudo -u $DOMAIN_OWNER ln -s awstats.$DOMAIN.html index.html
+	sudo -u $DOMAIN_OWNER ln -s /usr/share/awstats/icon awstats-icon
+	cd - &> /dev/null
+fi
+
+# set permissions
+chown -R $DOMAIN_OWNER:$DOMAIN_OWNER $DOMAIN_PATH
+chown -R $DOMAIN_OWNER:$DOMAIN_OWNER $DOMAIN_LOG_PATH
+# NOTE: these following lines may be necessary
+#chmod 711 /srv/www/$DOMAIN_OWNER
+#chmod 711 $DOMAIN_PATH
+
+# build virtualhost entry
+cat > $DOMAIN_CONFIG_PATH << EOF
+<VirtualHost *:80>
+
+	ServerName $DOMAIN
+	ServerAlias www.$DOMAIN
+	ServerAdmin webmaster@$DOMAIN
+	DocumentRoot $DOMAIN_PATH
+	ErrorLog $DOMAIN_LOG_PATH/apache2/error.log
+	CustomLog $DOMAIN_LOG_PATH/apache2/access.log combined
+
+	SuexecUserGroup $DOMAIN_OWNER $DOMAIN_OWNER
+	Action php-fcgi /fcgi-bin/php-fcgi-wrapper
+	Alias /fcgi-bin/ /var/www/fcgi-bin.d/php-$DOMAIN_OWNER/
+
+	<Directory $DOMAIN_PATH>
+		Options Indexes FollowSymLinks
+		AllowOverride All
+		Order allow,deny
+		allow from all
+	</Directory>
+
+	ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
+	<Location /cgi-bin>
+		Options +ExecCGI
+	</Location>
+
+</VirtualHost>
+
+
+<IfModule mod_ssl.c>
+<VirtualHost *:443>
+
+	ServerName $DOMAIN
+	ServerAlias www.$DOMAIN
+	ServerAdmin webmaster@$DOMAIN
+	DocumentRoot $DOMAIN_PATH
+	ErrorLog $DOMAIN_LOG_PATH/apache2/error.log
+	CustomLog $DOMAIN_LOG_PATH/apache2/access.log combined
+
+	SuexecUserGroup $DOMAIN_OWNER $DOMAIN_OWNER
+	Action php-fcgi /fcgi-bin/php-fcgi-wrapper
+	Alias /fcgi-bin/ /var/www/fcgi-bin.d/php-$DOMAIN_OWNER/
+
+	<Directory $DOMAIN_PATH>
+		Options Indexes FollowSymLinks
+		AllowOverride All
+		Order allow,deny
+		allow from all
+	</Directory>
+
+	ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
+	<Location /cgi-bin>
+		Options +ExecCGI
+	</Location>
+
+	SSLEngine on
+	SSLCertificateFile    /etc/ssl/localcerts/apache.pem
+	SSLCertificateKeyFile /etc/ssl/localcerts/apache.key
+
+	<FilesMatch "\.(cgi|shtml|phtml|php)$">
+		SSLOptions +StdEnvVars
+	</FilesMatch>
+
+	<Directory /usr/lib/cgi-bin>
+		SSLOptions +StdEnvVars
+	</Directory>
+
+	BrowserMatch "MSIE [2-6]" nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0
+	BrowserMatch "MSIE [17-9]" ssl-unclean-shutdown
+
+</VirtualHost>
+</IfModule>
+EOF
+
+# configure awstats for domain
+cp /etc/awstats/awstats.conf /etc/awstats/awstats.$DOMAIN.conf
+sed -i 's/^SiteDomain=.*/SiteDomain="'${DOMAIN}'"/' /etc/awstats/awstats.$DOMAIN.conf
+sed -i 's/^LogFile=.*/\# deleted LogFile parameter -- appended at the bottom of this config file instead./' /etc/awstats/awstats.$DOMAIN.conf
+sed -i 's/^LogFormat=.*/LogFormat=1/' /etc/awstats/awstats.$DOMAIN.conf
+sed -i 's/^DirData=.*/\# deleted DirData parameter -- appended at the bottom of this config file instead./' /etc/awstats/awstats.$DOMAIN.conf
+sed -i 's/^DirIcons=.*/DirIcons=".\/awstats-icon"/' /etc/awstats/awstats.$DOMAIN.conf
+sed -i '/Include \"\/etc\/awstats\/awstats\.conf\.local\"/ d' /etc/awstats/awstats.$DOMAIN.conf
+echo "LogFile=\"$DOMAIN_LOG_PATH/apache2/access.log\"" >> /etc/awstats/awstats.$DOMAIN.conf
+echo "DirData=\"$DOMAIN_LOG_PATH/awstats/.data\"" >> /etc/awstats/awstats.$DOMAIN.conf
+
+# add new logrotate entry for domain
+cat > /etc/logrotate.d/$LOGROTATE_FILE << EOF
+$DOMAIN_LOG_PATH/apache2/*.log {
+	daily
+	missingok
+	rotate 10
+	compress
+	delaycompress
+	notifempty
+	create 0640 $DOMAIN_OWNER adm
+	sharedscripts
+	prerotate
+		$AWSTATS_CMD
+	endscript
+	postrotate
+		$POSTROTATE_CMD
+	endscript
+}
+EOF
+
+# enable domain
+a2ensite $DOMAIN
 } # end function 'add_domain' #
+
+
+## remove domain
+function remove_domain {
+# disable domain and reload web server
+echo -e "\033[31;1mWARNING: THIS WILL PERMANENTLY DELETE EVERYTHING RELATED TO $DOMAIN\033[0m"
+echo -e "\033[31mIf you do not have backups and/or wish to stop it, press \033[1mCTRL+C\033[0m \033[31mto abort.\033[0m"
+sleep 10
+
+# ***NOTE: THERE IS NO TURNING BACK***
+# disable domain
+echo -e "* Disabling domain: \033[1m$DOMAIN\033[0m"
+sleep 1
+a2dissite $DOMAIN
+
+# reload apache
+reload_apache
+
+# delete awstats config
+echo -e "* Removing awstats config: \033[1m/etc/awstats/awstats.$DOMAIN.conf\033[0m"
+sleep 1
+rm -rf /etc/awstats/awstats.$DOMAIN.conf
+
+# delete domain files
+echo -e "* Removing domain files: \033[1m$DOMAIN_PATH\033[0m"
+sleep 1
+rm -rf $DOMAIN_PATH
+
+# delete vhost file
+echo -e "* Removing vhost file: \033[1m$DOMAIN_CONFIG_PATH\033[0m"
+sleep 1
+rm -rf $DOMAIN_CONFIG_PATH
+
+# delete log directory
+echo -e "* Removing log directory: \033[1m$DOMAIN_LOG_PATH\033[0m"
+sleep 1
+rm -rf $DOMAIN_LOG_PATH
+
+# delete logrotate file
+echo -e "* Removing logrotate file: \033[1m/etc/logrotate.d/$LOGROTATE_FILE\033[0m"
+sleep 1
+rm -rf /etc/logrotate.d/$LOGROTATE_FILE
+} # end function 'remove_domain' #
 
 
 ## check if the domain entered is actually valid as a domain name
@@ -188,7 +364,7 @@ if [ ! -n "$1" ]; then
 	echo -n "  $0"
 	echo -ne "\033[31;1m rm \033[32muser \033[0m\033[36;1msub.domain.tld\033[0m"
 	echo -e " - \033[34mDelete \033[1meverything\033[0m \033[34mfor sub.domain.tld.\033[0m"
-	echo -e "\033[31;1m    * NOTE: THIS WILL DELETE EVERYTHING! BACKUP FILES IF NECESSARY! * \033[0m"
+	echo -e "\033[31;1m    * NOTE: THIS WILL DELETE EVERYTHING -- BACKUP FILES IF NECESSARY * \033[0m"
 
 	# enable/disable public viewing of awstats
 	# NOTE: This should be re-implemented differently for better security
@@ -201,7 +377,7 @@ if [ ! -n "$1" ]; then
 	echo -n "  $0"
 	echo -ne "\033[31;1m pma \033[36mon|off\033[0m"
 	echo -e " - \033[34mEnable or disable public accessibility of phpmyadmin.\033[0m"
-	echo -e "\033[31;1m    * NOTE: THIS COULD BE DANGEROUS! KEEP PRIVATE IF POSSIBLE! * \033[0m"
+	echo -e "\033[31;1m    * NOTE: THIS COULD BE DANGEROUS -- KEEP PRIVATE IF POSSIBLE * \033[0m"
 
 	echo ""
 	exit
