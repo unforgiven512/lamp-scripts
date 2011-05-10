@@ -8,35 +8,35 @@
 
 
 
+### FUNCTIONS ###
 
-
-## check if user is a real user on the system ##
+## check if user is a real user on the system
 function check_user_exists {
 if [ -d /home/$USER ]; then
 	return 0
 else
 	return 1
 fi
-} ## end check_user_exists ##
+} # end check_user_exists #
 
 
 
 
 
-## check if user is already set up for web hosting ##
+## check if user is already set up for web hosting
 function check_user_hosting {
 if [ ! -d /srv/www/$USER ]; then
 	return 0
 else
 	return 1
 fi
-} ## end check_user_hosting ##
+} # end check_user_hosting #
 
 
 
 
 
-## enable web hosting ##
+## enable web hosting for user
 function enable_hosting {
 
 # create physical directories
@@ -76,14 +76,14 @@ EOF
 chown -R $USER:$USER /var/www/fcgi-bin.d/php-$USER
 chmod u+x /var/www/fcgi-bin.d/php-$USER/php-fcgi-wrapper
 
-} ## end enable_hosting ##
+} # end enable_hosting #
 
 
 
 
 
-## main program ##
-# show menu
+### MAIN PROGRAM ###
+## show usage information if no parameters are passed
 if [ ! -n "$1" ]; then
 	echo ""
 	echo -e "\033[35;1mUse one of the commands listed below:\033[0m"
@@ -100,7 +100,8 @@ if [ ! -n "$1" ]; then
     echo ""
     exit
 fi
-# execute options
+
+## execute options
 case $1 in
 enableweb)
 	USER=$2
@@ -129,5 +130,5 @@ enableweb)
 	enable_hosting
 	echo "Successfully setup web hosting for $USER, enjoy!"
 	exit 0
-;; ## end enableweb ##
+;; # end enableweb #
 esac
