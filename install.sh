@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# install.sh
+# Gerad Munsch <gmunsch@unforgivendevelopment.com>
+# `date`
+
+# USAGE: ./install.sh
+
+# NOTE: This file is not quite ready for use. Please do not use!
+
 ###First uninstall any unnecessary packages and ensure that aptitude is installed.
 apt-get update
 apt-get -y install aptitude

@@ -1,4 +1,13 @@
 #!/bin/bash
+
+# backup.sh
+# Gerad Munsch <gmunsch@unforgivendevelopment.com>
+# `date`
+
+# USAGE: ./backup.sh [ARG1] [ARG2] [...]
+
+# NOTE: This script is not quite ready for use. Please do not use!
+
 FIND_PATH="/srv/www/*"
 AWK_DB_POS="4"
 AWK_DOMAIN_POS="4"

@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# wordpress.sh
+# Gerad Munsch <gmunsch@unforgivendevelopment.com>
+# `date`
+
+# NOTE: This file is not quite ready for use. Please do not use!
+
 source ./options.conf
 
 FIND_PATH="/srv/www/*/public_html/"
