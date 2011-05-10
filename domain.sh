@@ -370,13 +370,13 @@ if [ ! -n "$1" ]; then
 	# NOTE: This should be re-implemented differently for better security
 	echo -n "  $0"
 	echo -ne "\033[31;1m awstats \033[36mon|off\033[0m"
-	echo -e " - \033[34mEnable or disable public viewing of Awstats. Stats data is preserved.\033[0m"
+	echo -e " - \033[34mEnable or disable public viewing of Awstats. Stats data is preserved. (NOTE: Not yet available.)\033[0m"
 
 	# enable/disable public access to phpmyadmin
 	# NOTE: This definitely needs re-implemented in a more secure way
 	echo -n "  $0"
 	echo -ne "\033[31;1m pma \033[36mon|off\033[0m"
-	echo -e " - \033[34mEnable or disable public accessibility of phpmyadmin.\033[0m"
+	echo -e " - \033[34mEnable or disable public accessibility of phpmyadmin. (NOTE: Not yet available.)\033[0m"
 	echo -e "\033[31;1m    * NOTE: THIS COULD BE DANGEROUS -- KEEP PRIVATE IF POSSIBLE * \033[0m"
 
 	echo ""
@@ -388,10 +388,9 @@ case $1 in
 
 add)
 	## add domain for user
-
 	# check for required parameters
 	if [ $# -ne 3 ]; then
-		echo -e "\033[31;1mERROR: Please enter all of the required parameters.\033[0m"
+		echo -e "\033[31;1mERROR: Please enter the required parameters.\033[0m"
 		echo -e " - \033[34mUse \033[1m$0\033[0m \033[34mto display usage options.\033[0m"
 		exit
 	fi
@@ -445,12 +444,55 @@ add)
 	reload_apache
 
 	# echo information about domain
-	echo -e "blah"
+	echo -e "\033[35;1m -- Succesfully added \"${DOMAIN}\" to user \"${DOMAIN_OWNER}\" --\033[0m"
+	echo -e "\033[35m - You can now upload your site to /home/$DOMAIN_OWNER/public_html/$DOMAIN\033[0m"
+	echo -e "\033[35m - Logs and awstats are available at /home/$DOMAIN_OWNER/logs/$DOMAIN\033[0m"
+	echo -e "\033[35m - Stats are updated daily. Please allow \033[1m24 hours\033[0m \033[35m before viewing, or you may encounter issues.\033[0m"
 
 ;; # end case 'add' #
 
 rm)
 	## remove domain from user
+	# check for required parameters
+	if [ $# -ne 3 ]; then
+		echo -e "\033[31;1mERROR: Please enter the required parameters.\033[0m"
+		echo -e " - \033[34mUse \033[1m$0\033[0m \033[34mto display usage options.\033[0m"
+		exit
+	fi
+
+	# set up variables
+	DOMAIN_OWNER=$2
+	DOMAIN=$3
+	initialize_variables
+
+	# check if user exists on system
+	check_user_exists
+	if [ $? -ne 0 ]; then
+		echo -e "\033[31;1mERROR: User \"$USER\" does not exist on this system.\033[0m"
+		exit 1
+	fi
+
+	# check if domain config exists
+	check_domain_config_exists
+	if [ $? -ne 0 ]; then
+		echo -e "\033[31;1mERROR: $DOMAIN_CONFIG_PATH does not exist, exiting.\033[0m"
+		echo -e " - \033[34;1mNOTE:\033[0m \033[34mThere may be files left over. Please check manually to ensure everything is deleted.\033[0m"
+		exit 1
+	fi
+
+	# check if domain path exists for user
+	check_domain_path_exists
+	if [ $? -ne 0 ]; then
+		echo -e "\033[31;1mERROR: $DOMAIN_PATH does not exist, exiting.\033[0m"
+		echo -e " - \033[34;1mNOTE:\033[0m \033[34mThere may be files left over. Please check manually to ensure everything is deleted.\033[0m"
+		exit 1
+	fi
+
+	# remove domain
+	remove_domain
+
+	# echo results
+	echo -e "\033[35;1m-- Succesfully removed \"${DOMAIN}\" from \"${DOMAIN_OWNER}\" --\033[0m"
 ;; # end case 'rm' #
 
 awstats)
