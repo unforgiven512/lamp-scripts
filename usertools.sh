@@ -111,6 +111,7 @@ enableweb)
 	if [ $# -ne 2 ]; then
 		echo -e "\033[31;1mERROR: Please enter the required parameters.\033[0m"
 		echo -e " - \033[34mUse \033[1m$0\033[0m \033[34mto display usage options.\033[0m"
+		exit
 	fi
 
 	# check if user exists on system
