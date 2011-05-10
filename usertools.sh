@@ -20,9 +20,6 @@ fi
 } # end check_user_exists #
 
 
-
-
-
 ## check if user is already set up for web hosting
 function check_user_hosting {
 if [ ! -d /srv/www/$USER ]; then
@@ -31,9 +28,6 @@ else
 	return 1
 fi
 } # end check_user_hosting #
-
-
-
 
 
 ## enable web hosting for user
@@ -80,25 +74,24 @@ chmod u+x /var/www/fcgi-bin.d/php-$USER/php-fcgi-wrapper
 
 
 
-
-
 ### MAIN PROGRAM ###
 ## show usage information if no parameters are passed
 if [ ! -n "$1" ]; then
 	echo ""
-	echo -e "\033[35;1mUse one of the commands listed below:\033[0m"
-	# enable web hosting for USERNAME
-	echo -n  "$0"
-	echo -ne "\033[36m enableweb USERNAME\033[0m"
-	echo     " - Setup directories and enable web hosting for USERNAME. Add a domain to go live."
+	echo -e "\033[33;1mSelect an option from the list of options below:\033[0m"
 
-	# disable web hosting for USERNAME
-    echo -n  "$0"
-    echo -ne "\033[36m disableweb USERNAME\033[0m"
-    echo     " - Temporarily disable web hosting for USERNAME. (NOTE: Not yet implemented.)"
+	# enable web hosting for user
+	echo -n "  $0"
+	echo -ne "\033[31;1m enableweb \033[36muser\033[0m"
+	echo -e " - \033[34mSetup directories and enable web hosting for the user. Add a domain to go live.\033[0m"
 
-    echo ""
-    exit
+	# disable web hosting for user
+	echo -n "  $0"
+	echo -ne "\033[31;1m disableweb \033[36muser\033[0m"
+	echo -e " - \033[34mTemporarily disable web hosting for the user. \033[31m(NOTE: Not yet implemented.)\033[0m"
+
+	echo ""
+	exit
 fi
 
 ## execute options
