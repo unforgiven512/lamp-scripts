@@ -81,7 +81,8 @@ fi
 ## display usage information if no parameters are passed
 if [ ! -n "$1" ]; then
 	echo ""
-	echo -e "\033[33;1mSelect from one of the options below:\033[0m"
+	echo -e "\033[33;1mSelect an option from the list of options below:\033[0m"
+
 	# add domain for user
 	echo -n "  $0"
 	echo -ne "\033[31;1m add \033[32muser \033[0m\033[36;1msub.domain.tld\033[0m"
@@ -90,19 +91,19 @@ if [ ! -n "$1" ]; then
 	# remove domain for user
 	echo -n "  $0"
 	echo -ne "\033[31;1m rm \033[32muser \033[0m\033[36;1msub.domain.tld\033[0m"
-	echo -e " - \033[34mDelete \033[31;1meverything\033[0m \033[34mfor sub.domain.tld.\033[0m"
+	echo -e " - \033[34mDelete \033[1meverything\033[0m \033[34mfor sub.domain.tld.\033[0m"
 	echo -e "\033[31;1m    * NOTE: THIS WILL DELETE EVERYTHING! BACKUP FILES IF NECESSARY! * \033[0m"
 
 	# enable/disable public viewing of awstats
 	# NOTE: This should be re-implemented differently for better security
 	echo -n "  $0"
-	echo -ne "\033[31;1m awstats \033[32mon|off\033[0m"
+	echo -ne "\033[31;1m awstats \033[36mon|off\033[0m"
 	echo -e " - \033[34mEnable or disable public viewing of Awstats. Stats data is preserved.\033[0m"
 
 	# enable/disable public access to phpmyadmin
 	# NOTE: This definitely needs re-implemented in a more secure way
 	echo -n "  $0"
-	echo -ne "\033[31;1m pma \033[32mon|off\033[0m"
+	echo -ne "\033[31;1m pma \033[36mon|off\033[0m"
 	echo -e " - \033[34mEnable or disable public accessibility of phpmyadmin.\033[0m"
 	echo -e "\033[31;1m    * NOTE: THIS COULD BE DANGEROUS! KEEP PRIVATE IF POSSIBLE! * \033[0m"
 
