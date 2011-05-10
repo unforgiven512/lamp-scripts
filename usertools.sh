@@ -17,7 +17,7 @@ if [ -d /home/$USER ]; then
 else
 	return 1
 fi
-} # end check_user_exists #
+} # end 'check_user_exists' #
 
 
 ## check if user is already set up for web hosting
@@ -27,7 +27,7 @@ if [ ! -d /srv/www/$USER ]; then
 else
 	return 1
 fi
-} # end check_user_hosting #
+} # end 'check_user_hosting' #
 
 
 ## enable web hosting for user
@@ -70,11 +70,12 @@ EOF
 chown -R $USER:$USER /var/www/fcgi-bin.d/php-$USER
 chmod u+x /var/www/fcgi-bin.d/php-$USER/php-fcgi-wrapper
 
-} # end enable_hosting #
+} # end 'enable_hosting' #
 
 
 
 ### MAIN PROGRAM ###
+
 ## show usage information if no parameters are passed
 if [ ! -n "$1" ]; then
 	echo ""
@@ -96,7 +97,11 @@ fi
 
 ## execute options
 case $1 in
+
 enableweb)
+	## enable web hosting for user
+	
+	# set up variables
 	USER=$2
 
 	# sanity check
@@ -123,5 +128,8 @@ enableweb)
 	enable_hosting
 	echo "Successfully setup web hosting for $USER, enjoy!"
 	exit 0
-;; # end enableweb #
+;; # end case 'enableweb' #
+
 esac
+
+### END PROGRAM ###
