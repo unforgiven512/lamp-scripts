@@ -17,12 +17,14 @@
 ## THIS WILL BE THE FINAL DOMAIN.SH FILE ##
 
 ### INITIALIZATION ###
+
 ## load external data
 source ./options.conf
 source ./constants.conf
 
 
 ### FUNCTIONS ###
+
 ## check if the domain entered is actually valid as a domain name
 # NOTE: to disable, set "DOMAIN_CHECK_VALIDITY" to "no" in options.conf
 function check_domain_valid {
@@ -123,6 +125,7 @@ apache2ctl graceful
 
 
 ### MAIN PROGRAM ###
+
 ## display usage information if no parameters are passed
 if [ ! -n "$1" ]; then
 	echo ""
@@ -158,6 +161,7 @@ fi
 
 ## execute functions
 case $1 in
+
 add)
 	## add domain for user
 
