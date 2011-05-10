@@ -27,7 +27,50 @@ source ./constants.conf
 
 ## initialize variables
 function initialize_variables {
+# set up path variables
+DOMAIN_PATH="/srv/www/$DOMAIN_OWNER/$DOMAIN"
+DOMAIN_LOG_PATH="/var/log/www/$DOMAIN_OWNER/$DOMAIN"
+DOMAIN_CONFIG_PATH="/etc/apache2/sites-available/$DOMAIN"
+# NOTE: may not be needed
+DOMAIN_ENABLED_PATH="/etc/apache2/sites-enabled/$DOMAIN"
+
+# setup awstats command to be placed in logrotate file
+if [ $AWSTATS_ENABLE = 'yes' ]; then
+	AWSTATS_CMD="/usr/share/awstats/tools/awstats_buildstaticpages.pl -update -config=$DOMAIN -dir=$DOMAIN_LOG_PATH/awstats -awstatsprog=/usr/lib/cgi-bin/awstats.pl > /dev/null"
+else # NOTE: may not be needed
+	AWSTATS_CMD=""
+fi
+
+# name of the logrotate file
+LOGROTATE_FILE="domain-$DOMAIN_OWNER-$DOMAIN"
 } # end function 'initialize_variables' #
+
+
+## add domain
+function add_domain {
+# create public_html and log directories for domain
+mkdir -p $DOMAIN_PATH
+mkdir -p $DOMAIN_LOG_PATH/apache2
+
+# create placeholder index.html
+cat > $DOMAIN_PATH << EOF
+<html>
+	<head>
+		<title>Welcome to $DOMAIN</title>
+	</head>
+	<body>
+		<h1>Welcome to $DOMAIN</h1>
+		<p>This page is simply a placeholder for your domain. Place your content in the appropriate directory to see it here. Please replace or delete index.html when uploading or creating your site.</p>
+		<p><b>Note to visitors:</b> Check back frequently for updates!</p>
+	</body>
+</html>
+EOF
+
+# setup awstats directories
+if [ $AWSTATS_ENABLE = 'yes' ]; then
+	mkdir -p $DOMAIN_LOG_PATH/{awstats,awstats/.data}
+	
+} # end function 'add_domain' #
 
 
 ## check if the domain entered is actually valid as a domain name
