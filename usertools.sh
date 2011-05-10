@@ -109,8 +109,8 @@ enableweb)
 
 	# sanity check
 	if [ $# -ne 2 ]; then
-	    echo "You have entered an invalid amount of parameters, please try again."
-		exit
+		echo -e "\033[31;1mERROR: Please enter the required parameters.\033[0m"
+		echo -e " - \033[34mUse \033[1m$0\033[0m \033[34mto display usage options.\033[0m"
 	fi
 
 	# check if user exists on system
@@ -132,7 +132,7 @@ enableweb)
 
 	# enable web hosting for user
 	enable_hosting
-	echo "Successfully setup web hosting for $USER, enjoy."
+	echo -e "\033[35mSuccessfully setup web hosting for $USER, enjoy.\033[0m"
 	exit 0
 ;; # end case 'enableweb' #
 
