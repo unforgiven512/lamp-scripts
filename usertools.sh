@@ -113,7 +113,9 @@ enableweb)
 	# check if user exists on system
 	check_user_exists
 	if [ $? -ne 0 ]; then
-		echo "User \"$USER\" does not exist on this system."
+		echo -e "\033[31;1mERROR: User \"$USER\" does not exist on this system.\033[0m"
+		echo -e " - \033[34mUse \033[1madduser\033[0m \033[34m to add the user to the system.\033[0m"
+		echo -e " - \033[34mFor more information, please see \033[1mman adduser\033[0m"
 		exit 1
 	fi
 
@@ -121,6 +123,14 @@ enableweb)
 	check_user_hosting
 	if [ $? -ne 0 ]; then
 		echo "User \"$USER\" is already set up for hosting."
+		exit 1
+	fi
+
+	# check if user is already set up for hosting
+	check_user_hosting
+	if [ $? -ne 0 ]; then
+		echo -e "\033[31;1mERROR: User \"$USER\" is already set up for hosting.\033[0m"
+		echo -e " - \033[34mNo further action should be necessary. If problems persist, manual intervention is probably necessary.\033[0m"
 		exit 1
 	fi
 
