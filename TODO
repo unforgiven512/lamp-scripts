@@ -3,3 +3,6 @@
 - add support for linode
 -- will still work if not using linode, defined in options.conf
 -- use the DNS manager API to integrate with domain.sh
+- check which user awstats.pl runs as
+-- if root, awesome -- all is well
+-- if $USER, not good -- going to have to fix permissions, probably
