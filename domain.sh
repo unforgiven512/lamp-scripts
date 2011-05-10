@@ -29,8 +29,8 @@ function check_domain_valid {
 
 if [ "$DOMAIN_CHECK_VALIDITY" = "yes" ]; then
 	if [[ "$DOMAIN" =~ [\~\!\@\#\$\%\^\&\*\(\)\_\+\=\{\}\|\\\;\:\'\"\<\>\?\,\/\[\]] ]]; then
-		echo -e "\033[35;1mERROR: Domain check failed. Please enter a valid domain.\033[0m"
-		echo -e "\033[35;1mNOTE: To disable validity checking, set DOMAIN_CHECK_VALIDITY in options.conf.\033[0m"
+		echo -e "\033[31;1mERROR: Domain check failed. Please enter a valid domain.\033[0m"
+		echo -e "\033[34mNOTE: To disable validity checking, set \033[1mDOMAIN_CHECK_VALIDITY\033[0m \033[34min options.conf.\033[0m"
 		return 1
 	else
 		return 0
@@ -39,7 +39,52 @@ else
 # if $DOMAIN_CHECK_VALIDITY is "no", simply exit
 	return 0
 fi
-} # end check_domain_valid #
+} # end 'check_domain_valid' #
+
+
+## check if user is a real user on the system
+function check_user_exists {
+if [ -d /home/$USER ]; then
+	return 0
+else
+	return 1
+fi
+} # end 'check_user_exists' #
+
+
+## check if user is already set up for web hosting
+function check_user_hosting {
+if [ -d /srv/www/$USER ]; then
+	return 0
+else
+	return 1
+fi
+} # end 'check_user_hosting' #
+
+## check if the domain config already exists in /etc/apache2/sites-available/
+function check_domain_config_exists {
+if [ -e "$DOMAIN_CONFIG_PATH" ]; then
+	return 0
+else
+	return 1
+fi
+} # end 'check_domain_config_exists' #
+
+
+## check if the domain path already exists in the user's web directory
+function check_domain_path_exists {
+if [ -e "$DOMAIN_PATH" ]; then
+	return 0
+else
+	return 1
+fi
+} # end 'check_domain_path_exists' #
+
+## reload apache (gracefully)
+function reload_apache {
+apache2ctl graceful
+} # end 'reload_apache' #
+
 
 ################################################################################
 # TEMPORARY COLOR STUFF
@@ -110,3 +155,84 @@ if [ ! -n "$1" ]; then
 	echo ""
 	exit
 fi
+
+## execute functions
+case $1 in
+add)
+	## add domain for user
+
+	# check for required parameters
+	if [ $# -ne 3 ]; then
+		echo -e "\033[31;1mERROR: Please enter all of the required parameters.\033[0m"
+		echo -e " - \033[34mUse \033[1m$0\033[0m \033[34mto display usage options.\033[0m"
+		exit
+	fi
+
+	# set up variables
+	DOMAIN_OWNER=$2
+	DOMAIN=$3
+	initialize_variables
+
+	# check if user exists on system
+	check_user_exists
+	if [ $? -ne 0 ]; then
+		echo -e "\033[31;1mERROR: User \"$USER\" does not exist on this system.\033[0m"
+		echo -e " - \033[34mUse \033[1madduser\033[0m \033[34m to add the user to the system.\033[0m"
+		echo -e " - \033[34mFor more information, please see \033[1mman adduser\033[0m"
+		exit 1
+	fi
+
+	# check if user is already set up for hosting
+	check_user_hosting
+	if [ $? -ne 0 ]; then
+		echo -e "\033[31;1mERROR: User \"$USER\" is not set up for hosting.\033[0m"
+		echo -e " - \033[34mUse \033[1m./usertools.sh enableweb user\033[0m \033[34m to set the user up for hosting.\033[0m"
+		exit 1
+	fi
+
+	# check is domain is valid
+	check_domain_valid
+	if [ $? -ne 0 ]; then
+		exit 1
+	fi
+
+	# check if domain config already exists
+	check_domain_config_exists
+	if [ $? -eq 0 ]; then
+		echo -e "\033[31;1mERROR: $DOMAIN_CONFIG_PATH already exists. Please remove before proceeding.\033[0m"
+		exit 1
+	fi
+
+	# check if domain path exists for user
+	check_domain_path_exists
+	if [ $? -eq 0 ]; then
+		echo -e "\033[31;1mERROR: $DOMAIN_PATH already exists. Please remove before proceeding.\033[0m"
+		exit 1
+	fi
+
+	# add domain
+	add_domain
+
+	# reload apache
+	reload_apache
+
+	# echo information about domain
+	echo -e "blah"
+
+;; # end case 'add' #
+
+rm)
+	## remove domain from user
+;; # end case 'rm' #
+
+awstats)
+	## configure awstats
+;; # end case 'awstats' #
+
+pma)
+	## configure phpmyadmin
+;; # end case 'pma' #
+
+esac
+
+### END PROGRAM ###
