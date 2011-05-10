@@ -391,7 +391,7 @@ add)
         echo -e "\033[35;1mIf Varnish cache is enabled, please disable & enable it again to reconfigure this domain. \033[0m"
 	fi
   ;;
-remove)
+remove) ## NOTE: CHANGED TO 'rm' ##
 	if [ $# -ne 3 ]; then
 	    echo "Please enter all the required parameters."
 		exit
