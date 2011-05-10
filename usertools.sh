@@ -17,7 +17,7 @@ if [ -d /home/$USER ]; then
 else
 	return 1
 fi
-} # end 'check_user_exists' #
+} # end function 'check_user_exists' #
 
 
 ## check if user is already set up for web hosting
@@ -27,7 +27,7 @@ if [ ! -d /srv/www/$USER ]; then
 else
 	return 1
 fi
-} # end 'check_user_hosting' #
+} # end function 'check_user_hosting' #
 
 
 ## enable web hosting for user
@@ -70,7 +70,7 @@ EOF
 chown -R $USER:$USER /var/www/fcgi-bin.d/php-$USER
 chmod u+x /var/www/fcgi-bin.d/php-$USER/php-fcgi-wrapper
 
-} # end 'enable_hosting' #
+} # end function 'enable_hosting' #
 
 
 

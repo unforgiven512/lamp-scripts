@@ -25,10 +25,14 @@ source ./constants.conf
 
 ### FUNCTIONS ###
 
+## initialize variables
+function initialize_variables {
+} # end function 'initialize_variables' #
+
+
 ## check if the domain entered is actually valid as a domain name
 # NOTE: to disable, set "DOMAIN_CHECK_VALIDITY" to "no" in options.conf
 function check_domain_valid {
-
 if [ "$DOMAIN_CHECK_VALIDITY" = "yes" ]; then
 	if [[ "$DOMAIN" =~ [\~\!\@\#\$\%\^\&\*\(\)\_\+\=\{\}\|\\\;\:\'\"\<\>\?\,\/\[\]] ]]; then
 		echo -e "\033[31;1mERROR: Domain check failed. Please enter a valid domain.\033[0m"
@@ -41,7 +45,7 @@ else
 # if $DOMAIN_CHECK_VALIDITY is "no", simply exit
 	return 0
 fi
-} # end 'check_domain_valid' #
+} # end function 'check_domain_valid' #
 
 
 ## check if user is a real user on the system
@@ -51,7 +55,7 @@ if [ -d /home/$USER ]; then
 else
 	return 1
 fi
-} # end 'check_user_exists' #
+} # end function 'check_user_exists' #
 
 
 ## check if user is already set up for web hosting
@@ -61,7 +65,8 @@ if [ -d /srv/www/$USER ]; then
 else
 	return 1
 fi
-} # end 'check_user_hosting' #
+} # end function 'check_user_hosting' #
+
 
 ## check if the domain config already exists in /etc/apache2/sites-available/
 function check_domain_config_exists {
@@ -70,7 +75,7 @@ if [ -e "$DOMAIN_CONFIG_PATH" ]; then
 else
 	return 1
 fi
-} # end 'check_domain_config_exists' #
+} # end function 'check_domain_config_exists' #
 
 
 ## check if the domain path already exists in the user's web directory
@@ -80,12 +85,12 @@ if [ -e "$DOMAIN_PATH" ]; then
 else
 	return 1
 fi
-} # end 'check_domain_path_exists' #
+} # end function 'check_domain_path_exists' #
 
 ## reload apache (gracefully)
 function reload_apache {
 apache2ctl graceful
-} # end 'reload_apache' #
+} # end function 'reload_apache' #
 
 
 ################################################################################
