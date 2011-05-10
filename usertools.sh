@@ -38,7 +38,10 @@ mkdir -p /srv/www/$USER
 mkdir -p /var/log/www/$USER
 
 # set permissions
-chown $USER:$USER /srv/www/$USER
+chown $USER:www-data /srv/www/$USER
+chmod 0750 /srv/www/$USER
+chown root:$USER /var/log/www/$USER
+chmod 0750 /var/log/www/$USER
 
 # link directories to user's home directory
 sudo -u $USER ln -s /srv/www/$USER /home/$USER/public_html
