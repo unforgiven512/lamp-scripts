@@ -132,7 +132,7 @@ enableweb)
 
 	# enable web hosting for user
 	enable_hosting
-	echo "Successfully setup web hosting for $USER, enjoy!"
+	echo "Successfully setup web hosting for $USER, enjoy."
 	exit 0
 ;; # end case 'enableweb' #
 
