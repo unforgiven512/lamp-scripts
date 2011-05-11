@@ -1,3 +1,7 @@
+TODO
+
+General
+-------
 - fix everything
 - get everything working
 - add support for linode
@@ -6,3 +10,51 @@
 - check which user awstats.pl runs as
 -- if root, awesome -- all is well
 -- if $USER, not good -- going to have to fix permissions, probably
+
+Ideas
+-----
+- perhaps rename project, something along the lines of "bash control" perhaps?
+- write more scripts along the lines of wordpress.sh -- "one click installers" for various web apps
+- set up an "admin panel" -- phpmyadmin, awstats, etc
+-- perhaps use 2 versions
+--- per-domain (http://a.site.com)
+--- per-site (http://user.site.com/a)
+-- control access with .htaccess
+-- FORCE SSL
+
+install.sh
+----------
+- check all code, rewrite
+- standardize menus
+
+setup.sh
+--------
+- check all code, rewrite
+- add code to check for existing setup?
+- remove unnecessary code
+- standardize menus
+
+domain.sh
+---------
+- double check all code
+- test
+- add support for Linode API (DNS Manager)
+
+usertools.sh
+------------
+- set up various permission systems
+-- restrict user to their own account (ie, 'ps aux' will only return their own processes)
+-- set up screen + irssi *only* accounts
+-- add code to temporarily disable web hosting for user *without* destroying user's files (perhaps disable the whole user account)
+
+backup.sh
+---------
+- check over all code, figure out what it does, etc
+- rewrite to meet needs
+- standardize menu
+
+wordpress.sh
+------------
+- check over all code, figure out what it does, etc
+- rewrite to meet needs?
+- standardize menu
