@@ -10,6 +10,19 @@ source ./options.conf
 
 ###Functions Begin###
 
+## error handling
+error_out() {
+# check if stderr is going to a terminal
+if [[ -t 2 ]]; then
+	# if it is a terminal, colorize output
+	printf '\033[31;1m%s\033[0m\n' "ERROR: $@" >&2
+else
+	# if it is not a terminal, output plaintext
+	printf '%s\n' "ERROR: $@" >&2
+fi
+} # end error_out() #
+
+
 function add_new_user {
 
 adduser $newuser
@@ -48,13 +61,25 @@ adduser $newuser
 } #end function add_new_user
 
 
+## check input/variables
+check_variables() {
+	# check sshd port to ensure it's numeric
+	if [[ $sshd_port = *[!0-9]* || $sshd_port = 0* ]] || (( $sshd_port > 65536 )); then
+		error_out "Please set sshd_port in options.conf to a numeric value between 1 and 65535."
+		return 1
+	fi
+} # end function 'check_variables' #
+
 
 function basic_server_setup {
 
 #Reconfigure sshd - change port and disable root login
-sed -i 's/^Port [0-9]*/Port '${SSHD_PORT}'/' /etc/ssh/sshd_config
+sed -i "s/^Port [0-9]*/Port $sshd_port/" /etc/ssh/sshd_config
 sed -i 's/PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
 /etc/init.d/ssh reload
+
+# reconfigure /etc/adduser.conf to secure user's home directories on creation
+sed -i 's/^DIR_MODE=[0-9]*/DIRMODE=0750/' /etc/adduser.conf
 
 #Set hostname and FQDN
 sed -i 's/'${SERVER_IP}'.*/'${SERVER_IP}' '${HOSTNAME_FQDN}' '${HOSTNAME}'/' /etc/hosts
@@ -620,11 +645,12 @@ add)
     fi
   ;;
 basic)
-    basic_server_setup
-    echo -e "\033[35;1m Root login disabled, SSH port set to $SSHD_PORT. Hostname set to $HOSTNAME and FQDN to $HOSTNAME_FQDN. \033[0m"
-    echo -e "\033[35;1m Htop, lynx, dnsutils, unzip, byobu installed. \033[0m"
-    echo -e "\033[35;1m Remember to create a normal user account for login or you will be locked out from your box! \033[0m"
-  ;;
+	check_variables || exit
+	basic_server_setup
+	echo -e "\033[35;1m Root login disabled, SSH port set to $sshd_port. Hostname set to $HOSTNAME and FQDN to $HOSTNAME_FQDN. \033[0m"
+	echo -e "\033[35;1m Htop, lynx, dnsutils, unzip, byobu installed. \033[0m"
+	echo -e "\033[35;1m Remember to create a normal user account for login or you will be locked out from your box! \033[0m"
+;; # end case 'basic' #
 lamp)
     install_lamp
     install_mysql
