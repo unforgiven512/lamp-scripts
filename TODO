@@ -1,5 +1,12 @@
 TODO
 
+Important
+---------
+- double-quote all variables
+- sanitize input in some areas (mostly where variables are used in sed)
+- fix error handling (use error_out function)
+- fix exit points (ie: no exit points in functions, only main program)
+
 General
 -------
 - fix everything
@@ -10,6 +17,7 @@ General
 - check which user awstats.pl runs as
 -- if root, awesome -- all is well
 -- if $USER, not good -- going to have to fix permissions, probably
+- gradually re-write echo code to use printf instead
 
 Ideas
 -----
