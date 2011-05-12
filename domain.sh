@@ -41,11 +41,11 @@ VHOST_ROOT="/var/log/www/*/*/" ## not actually the vhost root, but it is where a
 ## initialize variables
 function initialize_variables {
 # set up path variables
-DOMAIN_PATH="/srv/www/$domain_owner/$DOMAIN"
-DOMAIN_LOG_PATH="/var/log/www/$domain_owner/$DOMAIN"
-DOMAIN_CONFIG_PATH="/etc/apache2/sites-available/$DOMAIN"
+domain_path="/srv/www/$domain_owner/$domain"
+DOMAIN_LOG_PATH="/var/log/www/$domain_owner/$domain"
+DOMAIN_CONFIG_PATH="/etc/apache2/sites-available/$domain"
 # NOTE: may not be needed
-DOMAIN_ENABLED_PATH="/etc/apache2/sites-enabled/$DOMAIN"
+DOMAIN_ENABLED_PATH="/etc/apache2/sites-enabled/$domain"
 
 # setup awstats command to be placed in logrotate file
 if [ $AWSTATS_ENABLE = 'yes' ]; then
@@ -55,24 +55,24 @@ else # NOTE: may not be needed
 fi
 
 # name of the logrotate file
-LOGROTATE_FILE="domain-$DOMAIN"
+LOGROTATE_FILE="domain-$domain"
 } # end function 'initialize_variables' #
 
 
 ## add domain
 function add_domain {
 # create public_html and log directories for domain
-mkdir -p $DOMAIN_PATH
+mkdir -p $domain_path
 mkdir -p $DOMAIN_LOG_PATH/apache2
 
 # create placeholder index.html
-cat > $DOMAIN_PATH/index.html << EOF
+cat > $domain_path/index.html << EOF
 <html>
 	<head>
-		<title>Welcome to $DOMAIN</title>
+		<title>Welcome to $domain</title>
 	</head>
 	<body>
-		<h1>Welcome to $DOMAIN</h1>
+		<h1>Welcome to $domain</h1>
 		<p>This page is simply a placeholder for your domain. Place your content in the appropriate directory to see it here. Please replace or delete index.html when uploading or creating your site.</p>
 		<p><b>Note to visitors:</b> Check back frequently for updates!</p>
 	</body>
@@ -83,26 +83,26 @@ EOF
 if [ $AWSTATS_ENABLE = 'yes' ]; then
 	mkdir -p $DOMAIN_LOG_PATH/{awstats,awstats/.data}
 	cd $DOMAIN_LOG_PATH/awstats/
-	ln -s awstats.$DOMAIN.html index.html
+	ln -s awstats.$domain.html index.html
 	ln -s /usr/share/awstats/icon awstats-icon
 	cd - &> /dev/null
 fi
 
 # set permissions
-chown -R $domain_owner:$domain_owner $DOMAIN_PATH
+chown -R $domain_owner:$domain_owner $domain_path
 chown -R $domain_owner:$domain_owner $DOMAIN_LOG_PATH
 # NOTE: these following lines may be necessary
 #chmod 711 /srv/www/$domain_owner
-#chmod 711 $DOMAIN_PATH
+#chmod 711 $domain_path
 
 # build virtualhost entry
 cat > $DOMAIN_CONFIG_PATH << EOF
 <VirtualHost *:80>
 
-	ServerName $DOMAIN
-	ServerAlias www.$DOMAIN
-	ServerAdmin webmaster@$DOMAIN
-	DocumentRoot $DOMAIN_PATH
+	ServerName $domain
+	ServerAlias www.$domain
+	ServerAdmin webmaster@$domain
+	DocumentRoot $domain_path
 	ErrorLog $DOMAIN_LOG_PATH/apache2/error.log
 	CustomLog $DOMAIN_LOG_PATH/apache2/access.log combined
 
@@ -110,7 +110,7 @@ cat > $DOMAIN_CONFIG_PATH << EOF
 	Action php-fcgi /fcgi-bin/php-fcgi-wrapper
 	Alias /fcgi-bin/ /var/www/fcgi-bin.d/php-$domain_owner/
 
-	<Directory $DOMAIN_PATH>
+	<Directory $domain_path>
 		Options Indexes FollowSymLinks
 		AllowOverride All
 		Order allow,deny
@@ -128,10 +128,10 @@ cat > $DOMAIN_CONFIG_PATH << EOF
 <IfModule mod_ssl.c>
 <VirtualHost *:443>
 
-	ServerName $DOMAIN
-	ServerAlias www.$DOMAIN
-	ServerAdmin webmaster@$DOMAIN
-	DocumentRoot $DOMAIN_PATH
+	ServerName $domain
+	ServerAlias www.$domain
+	ServerAdmin webmaster@$domain
+	DocumentRoot $domain_path
 	ErrorLog $DOMAIN_LOG_PATH/apache2/error.log
 	CustomLog $DOMAIN_LOG_PATH/apache2/access.log combined
 
@@ -139,7 +139,7 @@ cat > $DOMAIN_CONFIG_PATH << EOF
 	Action php-fcgi /fcgi-bin/php-fcgi-wrapper
 	Alias /fcgi-bin/ /var/www/fcgi-bin.d/php-$domain_owner/
 
-	<Directory $DOMAIN_PATH>
+	<Directory $domain_path>
 		Options Indexes FollowSymLinks
 		AllowOverride All
 		Order allow,deny
@@ -171,15 +171,15 @@ cat > $DOMAIN_CONFIG_PATH << EOF
 EOF
 
 # configure awstats for domain
-cp /etc/awstats/awstats.conf /etc/awstats/awstats.$DOMAIN.conf
-sed -i 's/^SiteDomain=.*/SiteDomain="'${DOMAIN}'"/' /etc/awstats/awstats.$DOMAIN.conf
-sed -i 's/^LogFile=.*/\# deleted LogFile parameter -- appended at the bottom of this config file instead./' /etc/awstats/awstats.$DOMAIN.conf
-sed -i 's/^LogFormat=.*/LogFormat=1/' /etc/awstats/awstats.$DOMAIN.conf
-sed -i 's/^DirData=.*/\# deleted DirData parameter -- appended at the bottom of this config file instead./' /etc/awstats/awstats.$DOMAIN.conf
-sed -i 's/^DirIcons=.*/DirIcons=".\/awstats-icon"/' /etc/awstats/awstats.$DOMAIN.conf
-sed -i '/Include \"\/etc\/awstats\/awstats\.conf\.local\"/ d' /etc/awstats/awstats.$DOMAIN.conf
-echo "LogFile=\"$DOMAIN_LOG_PATH/apache2/access.log\"" >> /etc/awstats/awstats.$DOMAIN.conf
-echo "DirData=\"$DOMAIN_LOG_PATH/awstats/.data\"" >> /etc/awstats/awstats.$DOMAIN.conf
+cp /etc/awstats/awstats.conf /etc/awstats/awstats.$domain.conf
+sed -i 's/^SiteDomain=.*/SiteDomain="'${domain}'"/' /etc/awstats/awstats.$domain.conf
+sed -i 's/^LogFile=.*/\# deleted LogFile parameter -- appended at the bottom of this config file instead./' /etc/awstats/awstats.$domain.conf
+sed -i 's/^LogFormat=.*/LogFormat=1/' /etc/awstats/awstats.$domain.conf
+sed -i 's/^DirData=.*/\# deleted DirData parameter -- appended at the bottom of this config file instead./' /etc/awstats/awstats.$domain.conf
+sed -i 's/^DirIcons=.*/DirIcons=".\/awstats-icon"/' /etc/awstats/awstats.$domain.conf
+sed -i '/Include \"\/etc\/awstats\/awstats\.conf\.local\"/ d' /etc/awstats/awstats.$domain.conf
+echo "LogFile=\"$DOMAIN_LOG_PATH/apache2/access.log\"" >> /etc/awstats/awstats.$domain.conf
+echo "DirData=\"$DOMAIN_LOG_PATH/awstats/.data\"" >> /etc/awstats/awstats.$domain.conf
 
 # add new logrotate entry for domain
 cat > /etc/logrotate.d/$LOGROTATE_FILE << EOF
@@ -202,35 +202,35 @@ $DOMAIN_LOG_PATH/apache2/*.log {
 EOF
 
 # enable domain
-a2ensite $DOMAIN &> /dev/null
+a2ensite $domain &> /dev/null
 } # end function 'add_domain' #
 
 
 ## remove domain
 remove_domain() {
 # disable domain and reload web server
-echo -e "\033[31;1mWARNING: THIS WILL PERMANENTLY DELETE EVERYTHING RELATED TO $DOMAIN\033[0m"
+echo -e "\033[31;1mWARNING: THIS WILL PERMANENTLY DELETE EVERYTHING RELATED TO $domain\033[0m"
 echo -e "\033[31mIf you do not have backups and/or wish to stop it, press \033[1mCTRL+C\033[0m \033[31mto abort.\033[0m"
 sleep 10
 
 # ***NOTE: THERE IS NO TURNING BACK***
 # disable domain
-echo -e "* Disabling domain: \033[1m$DOMAIN\033[0m"
+echo -e "* Disabling domain: \033[1m$domain\033[0m"
 sleep 1
-a2dissite $DOMAIN &> /dev/null
+a2dissite $domain &> /dev/null
 
 # reload apache
 reload_apache
 
 # delete awstats config
-echo -e "* Removing awstats config: \033[1m/etc/awstats/awstats.$DOMAIN.conf\033[0m"
+echo -e "* Removing awstats config: \033[1m/etc/awstats/awstats.$domain.conf\033[0m"
 sleep 1
-rm -rf /etc/awstats/awstats.$DOMAIN.conf
+rm -rf /etc/awstats/awstats.$domain.conf
 
 # delete domain files
-echo -e "* Removing domain files: \033[1m$DOMAIN_PATH\033[0m"
+echo -e "* Removing domain files: \033[1m$domain_path\033[0m"
 sleep 1
-rm -rf $DOMAIN_PATH
+rm -rf $domain_path
 
 # delete vhost file
 echo -e "* Removing vhost file: \033[1m$DOMAIN_CONFIG_PATH\033[0m"
@@ -253,7 +253,7 @@ rm -rf /etc/logrotate.d/$LOGROTATE_FILE
 # NOTE: to disable, set "DOMAIN_CHECK_VALIDITY" to "no" in options.conf
 function check_domain_valid {
 if [ "$DOMAIN_CHECK_VALIDITY" = "yes" ]; then
-	if [[ "$DOMAIN" =~ [\~\!\@\#\$\%\^\&\*\(\)\_\+\=\{\}\|\\\;\:\'\"\<\>\?\,\/\[\]] ]]; then
+	if [[ "$domain" =~ [\~\!\@\#\$\%\^\&\*\(\)\_\+\=\{\}\|\\\;\:\'\"\<\>\?\,\/\[\]] ]]; then
 		echo -e "\033[31;1mERROR: Domain check failed. Please enter a valid domain.\033[0m"
 		echo -e "\033[34mNOTE: To disable validity checking, set \033[1mDOMAIN_CHECK_VALIDITY\033[0m \033[34min options.conf.\033[0m"
 		return 1
@@ -299,7 +299,7 @@ fi
 
 ## check if the domain path already exists in the user's web directory
 function check_domain_path_exists {
-if [ -e "$DOMAIN_PATH" ]; then
+if [ -e "$domain_path" ]; then
 	return 0
 else
 	return 1
@@ -397,7 +397,7 @@ add)
 
 	# set up variables
 	domain_owner=$2
-	DOMAIN=$3
+	domain=$3
 	initialize_variables
 
 	# check if user exists on system
@@ -433,7 +433,7 @@ add)
 	# check if domain path exists for user
 	check_domain_path_exists
 	if [ $? -eq 0 ]; then
-		echo -e "\033[31;1mERROR: $DOMAIN_PATH already exists. Please remove before proceeding.\033[0m"
+		echo -e "\033[31;1mERROR: $domain_path already exists. Please remove before proceeding.\033[0m"
 		exit 1
 	fi
 
@@ -444,9 +444,9 @@ add)
 	reload_apache
 
 	# echo information about domain
-	echo -e "\033[35;1m -- Succesfully added \"${DOMAIN}\" to user \"${domain_owner}\" --\033[0m"
-	echo -e "\033[35m - You can now upload your site to /home/$domain_owner/public_html/$DOMAIN\033[0m"
-	echo -e "\033[35m - Logs and awstats are available at /home/$domain_owner/logs/$DOMAIN\033[0m"
+	echo -e "\033[35;1m -- Succesfully added \"${domain}\" to user \"${domain_owner}\" --\033[0m"
+	echo -e "\033[35m - You can now upload your site to /home/$domain_owner/public_html/$domain\033[0m"
+	echo -e "\033[35m - Logs and awstats are available at /home/$domain_owner/logs/$domain\033[0m"
 	echo -e "\033[35m - Stats are updated daily. Please allow \033[1m24 hours\033[0m \033[35m before viewing, or you may encounter issues.\033[0m"
 
 ;; # end case 'add' #
@@ -462,7 +462,7 @@ rm)
 
 	# set up variables
 	domain_owner=$2
-	DOMAIN=$3
+	domain=$3
 	initialize_variables
 
 	# check if user exists on system
@@ -483,7 +483,7 @@ rm)
 	# check if domain path exists for user
 	check_domain_path_exists
 	if [ $? -ne 0 ]; then
-		echo -e "\033[31;1mERROR: $DOMAIN_PATH does not exist, exiting.\033[0m"
+		echo -e "\033[31;1mERROR: $domain_path does not exist, exiting.\033[0m"
 		echo -e " - \033[34;1mNOTE:\033[0m \033[34mThere may be files left over. Please check manually to ensure everything is deleted.\033[0m"
 		exit 1
 	fi
@@ -492,7 +492,7 @@ rm)
 	remove_domain
 
 	# echo results
-	echo -e "\033[35;1m-- Succesfully removed \"${DOMAIN}\" from \"${domain_owner}\" --\033[0m"
+	echo -e "\033[35;1m-- Succesfully removed \"${domain}\" from \"${domain_owner}\" --\033[0m"
 ;; # end case 'rm' #
 
 awstats)
