@@ -10,28 +10,41 @@
 
 ### FUNCTIONS ###
 
+## error handling
+error_out() {
+# check if stderr is going to a terminal
+if [[ -t 2 ]]; then
+	# if it is a terminal, colorize output
+	printf '\033[31;1m%s\033[0m\n' "ERROR: $@" >&2
+else
+	# if it is not a terminal, output plaintext
+	printf '%s\n' "ERROR: $@" >&2
+fi
+} # end error_out() #
+
+
 ## check if user is a real user on the system
-function check_user_exists {
+check_user_exists() {
 if [ -d /home/$USER ]; then
 	return 0
 else
 	return 1
 fi
-} # end function 'check_user_exists' #
+} # end check_user_exists() #
 
 
 ## check if user is already set up for web hosting
-function check_user_hosting {
+check_user_hosting() {
 if [ ! -d /srv/www/$USER ]; then
 	return 0
 else
 	return 1
 fi
-} # end function 'check_user_hosting' #
+} # end check_user_hosting() #
 
 
 ## enable web hosting for user
-function enable_hosting {
+enable_hosting() {
 
 # create physical directories
 mkdir -p /srv/www/$USER
@@ -76,7 +89,6 @@ chmod u+x /var/www/fcgi-bin.d/php-$USER/php-fcgi-wrapper
 } # end function 'enable_hosting' #
 
 
-
 ### MAIN PROGRAM ###
 
 ## show usage information if no parameters are passed
@@ -98,6 +110,7 @@ if [ ! -n "$1" ]; then
 	exit
 fi
 
+
 ## execute options
 case $1 in
 
@@ -109,32 +122,32 @@ enableweb)
 
 	# sanity check
 	if [ $# -ne 2 ]; then
-		echo -e "\033[31;1mERROR: Please enter the required parameters.\033[0m"
+		error_out "Please enter the required parameters."
 		echo -e " - \033[34mUse \033[1m$0\033[0m \033[34mto display usage options.\033[0m"
-		exit
+		exit 1
 	fi
 
 	# check if user exists on system
 	check_user_exists
 	if [ $? -ne 0 ]; then
-		echo -e "\033[31;1mERROR: User \"$USER\" does not exist on this system.\033[0m"
+		error_out "User \"$USER\" does not exist on this system."
 		echo -e " - \033[34mUse \033[1madduser\033[0m \033[34m to add the user to the system.\033[0m"
 		echo -e " - \033[34mFor more information, please see \033[1mman adduser\033[0m"
-		exit 1
+		exit
 	fi
 
 	# check if user is already set up for hosting
 	check_user_hosting
 	if [ $? -ne 0 ]; then
-		echo -e "\033[31;1mERROR: User \"$USER\" is already set up for hosting.\033[0m"
+		error_out "User \"$USER\" is already set up for hosting."
 		echo -e " - \033[34mNo further action should be necessary. If problems persist, manual intervention is probably necessary.\033[0m"
-		exit 1
+		exit
 	fi
 
 	# enable web hosting for user
 	enable_hosting
 	echo -e "\033[35mSuccessfully setup web hosting for $USER, enjoy.\033[0m"
-	exit 0
+	exit
 ;; # end case 'enableweb' #
 
 esac
