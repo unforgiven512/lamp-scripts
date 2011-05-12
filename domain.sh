@@ -41,8 +41,8 @@ VHOST_ROOT="/var/log/www/*/*/" ## not actually the vhost root, but it is where a
 ## initialize variables
 function initialize_variables {
 # set up path variables
-DOMAIN_PATH="/srv/www/$DOMAIN_OWNER/$DOMAIN"
-DOMAIN_LOG_PATH="/var/log/www/$DOMAIN_OWNER/$DOMAIN"
+DOMAIN_PATH="/srv/www/$domain_owner/$DOMAIN"
+DOMAIN_LOG_PATH="/var/log/www/$domain_owner/$DOMAIN"
 DOMAIN_CONFIG_PATH="/etc/apache2/sites-available/$DOMAIN"
 # NOTE: may not be needed
 DOMAIN_ENABLED_PATH="/etc/apache2/sites-enabled/$DOMAIN"
@@ -66,7 +66,7 @@ mkdir -p $DOMAIN_PATH
 mkdir -p $DOMAIN_LOG_PATH/apache2
 
 # create placeholder index.html
-cat > $DOMAIN_PATH << EOF
+cat > $DOMAIN_PATH/index.html << EOF
 <html>
 	<head>
 		<title>Welcome to $DOMAIN</title>
@@ -83,16 +83,16 @@ EOF
 if [ $AWSTATS_ENABLE = 'yes' ]; then
 	mkdir -p $DOMAIN_LOG_PATH/{awstats,awstats/.data}
 	cd $DOMAIN_LOG_PATH/awstats/
-	sudo -u $DOMAIN_OWNER ln -s awstats.$DOMAIN.html index.html
-	sudo -u $DOMAIN_OWNER ln -s /usr/share/awstats/icon awstats-icon
+	ln -s awstats.$DOMAIN.html index.html
+	ln -s /usr/share/awstats/icon awstats-icon
 	cd - &> /dev/null
 fi
 
 # set permissions
-chown -R $DOMAIN_OWNER:$DOMAIN_OWNER $DOMAIN_PATH
-chown -R $DOMAIN_OWNER:$DOMAIN_OWNER $DOMAIN_LOG_PATH
+chown -R $domain_owner:$domain_owner $DOMAIN_PATH
+chown -R $domain_owner:$domain_owner $DOMAIN_LOG_PATH
 # NOTE: these following lines may be necessary
-#chmod 711 /srv/www/$DOMAIN_OWNER
+#chmod 711 /srv/www/$domain_owner
 #chmod 711 $DOMAIN_PATH
 
 # build virtualhost entry
@@ -106,9 +106,9 @@ cat > $DOMAIN_CONFIG_PATH << EOF
 	ErrorLog $DOMAIN_LOG_PATH/apache2/error.log
 	CustomLog $DOMAIN_LOG_PATH/apache2/access.log combined
 
-	SuexecUserGroup $DOMAIN_OWNER $DOMAIN_OWNER
+	SuexecUserGroup $domain_owner $domain_owner
 	Action php-fcgi /fcgi-bin/php-fcgi-wrapper
-	Alias /fcgi-bin/ /var/www/fcgi-bin.d/php-$DOMAIN_OWNER/
+	Alias /fcgi-bin/ /var/www/fcgi-bin.d/php-$domain_owner/
 
 	<Directory $DOMAIN_PATH>
 		Options Indexes FollowSymLinks
@@ -135,9 +135,9 @@ cat > $DOMAIN_CONFIG_PATH << EOF
 	ErrorLog $DOMAIN_LOG_PATH/apache2/error.log
 	CustomLog $DOMAIN_LOG_PATH/apache2/access.log combined
 
-	SuexecUserGroup $DOMAIN_OWNER $DOMAIN_OWNER
+	SuexecUserGroup $domain_owner $domain_owner
 	Action php-fcgi /fcgi-bin/php-fcgi-wrapper
-	Alias /fcgi-bin/ /var/www/fcgi-bin.d/php-$DOMAIN_OWNER/
+	Alias /fcgi-bin/ /var/www/fcgi-bin.d/php-$domain_owner/
 
 	<Directory $DOMAIN_PATH>
 		Options Indexes FollowSymLinks
@@ -190,7 +190,7 @@ $DOMAIN_LOG_PATH/apache2/*.log {
 	compress
 	delaycompress
 	notifempty
-	create 0640 $DOMAIN_OWNER adm
+	create 0640 $domain_owner adm
 	sharedscripts
 	prerotate
 		$AWSTATS_CMD
@@ -202,12 +202,12 @@ $DOMAIN_LOG_PATH/apache2/*.log {
 EOF
 
 # enable domain
-a2ensite $DOMAIN
+a2ensite $DOMAIN &> /dev/null
 } # end function 'add_domain' #
 
 
 ## remove domain
-function remove_domain {
+remove_domain() {
 # disable domain and reload web server
 echo -e "\033[31;1mWARNING: THIS WILL PERMANENTLY DELETE EVERYTHING RELATED TO $DOMAIN\033[0m"
 echo -e "\033[31mIf you do not have backups and/or wish to stop it, press \033[1mCTRL+C\033[0m \033[31mto abort.\033[0m"
@@ -217,7 +217,7 @@ sleep 10
 # disable domain
 echo -e "* Disabling domain: \033[1m$DOMAIN\033[0m"
 sleep 1
-a2dissite $DOMAIN
+a2dissite $DOMAIN &> /dev/null
 
 # reload apache
 reload_apache
@@ -269,7 +269,7 @@ fi
 
 ## check if user is a real user on the system
 function check_user_exists {
-if [ -d /home/$USER ]; then
+if [ -d /home/$domain_owner ]; then
 	return 0
 else
 	return 1
@@ -279,7 +279,7 @@ fi
 
 ## check if user is already set up for web hosting
 function check_user_hosting {
-if [ -d /srv/www/$USER ]; then
+if [ -d /srv/www/$domain_owner ]; then
 	return 0
 else
 	return 1
@@ -396,14 +396,14 @@ add)
 	fi
 
 	# set up variables
-	DOMAIN_OWNER=$2
+	domain_owner=$2
 	DOMAIN=$3
 	initialize_variables
 
 	# check if user exists on system
 	check_user_exists
 	if [ $? -ne 0 ]; then
-		echo -e "\033[31;1mERROR: User \"$USER\" does not exist on this system.\033[0m"
+		echo -e "\033[31;1mERROR: User \"$domain_owner\" does not exist on this system.\033[0m"
 		echo -e " - \033[34mUse \033[1madduser\033[0m \033[34m to add the user to the system.\033[0m"
 		echo -e " - \033[34mFor more information, please see \033[1mman adduser\033[0m"
 		exit 1
@@ -412,7 +412,7 @@ add)
 	# check if user is already set up for hosting
 	check_user_hosting
 	if [ $? -ne 0 ]; then
-		echo -e "\033[31;1mERROR: User \"$USER\" is not set up for hosting.\033[0m"
+		echo -e "\033[31;1mERROR: User \"$domain_owner\" is not set up for hosting.\033[0m"
 		echo -e " - \033[34mUse \033[1m./usertools.sh enableweb user\033[0m \033[34m to set the user up for hosting.\033[0m"
 		exit 1
 	fi
@@ -444,9 +444,9 @@ add)
 	reload_apache
 
 	# echo information about domain
-	echo -e "\033[35;1m -- Succesfully added \"${DOMAIN}\" to user \"${DOMAIN_OWNER}\" --\033[0m"
-	echo -e "\033[35m - You can now upload your site to /home/$DOMAIN_OWNER/public_html/$DOMAIN\033[0m"
-	echo -e "\033[35m - Logs and awstats are available at /home/$DOMAIN_OWNER/logs/$DOMAIN\033[0m"
+	echo -e "\033[35;1m -- Succesfully added \"${DOMAIN}\" to user \"${domain_owner}\" --\033[0m"
+	echo -e "\033[35m - You can now upload your site to /home/$domain_owner/public_html/$DOMAIN\033[0m"
+	echo -e "\033[35m - Logs and awstats are available at /home/$domain_owner/logs/$DOMAIN\033[0m"
 	echo -e "\033[35m - Stats are updated daily. Please allow \033[1m24 hours\033[0m \033[35m before viewing, or you may encounter issues.\033[0m"
 
 ;; # end case 'add' #
@@ -461,14 +461,14 @@ rm)
 	fi
 
 	# set up variables
-	DOMAIN_OWNER=$2
+	domain_owner=$2
 	DOMAIN=$3
 	initialize_variables
 
 	# check if user exists on system
 	check_user_exists
 	if [ $? -ne 0 ]; then
-		echo -e "\033[31;1mERROR: User \"$USER\" does not exist on this system.\033[0m"
+		echo -e "\033[31;1mERROR: User \"$domain_owner\" does not exist on this system.\033[0m"
 		exit 1
 	fi
 
@@ -492,7 +492,7 @@ rm)
 	remove_domain
 
 	# echo results
-	echo -e "\033[35;1m-- Succesfully removed \"${DOMAIN}\" from \"${DOMAIN_OWNER}\" --\033[0m"
+	echo -e "\033[35;1m-- Succesfully removed \"${DOMAIN}\" from \"${domain_owner}\" --\033[0m"
 ;; # end case 'rm' #
 
 awstats)
