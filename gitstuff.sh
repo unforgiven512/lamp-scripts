@@ -21,4 +21,19 @@ source ./constants.conf
 # install git, git-doc, gitweb, gitolite
 aptitude -y install git git-doc gitweb gitolite
 
+# echo admin's ssh pubkey into /tmp/$git_admin_user_name.pub
+echo "$git_admin_ssh_pubkey" > /tmp/"$git_admin_user_name".pub
+
+# make sure the key is readable by all
+chmod 0666 /tmp/"$git_admin_user_name".pub
+
+# drop privs to the gitolite user, and set up gitolite
+sudo -u gitolite gl-setup /tmp/"$git_admin_user_name".pub 
+
+# prompt user to check out gitolite-admin repository
+# FIXME: (This is going to have to be improved (automated))
+echo "Please run \"git clone git@"$SERVER_IP":gitolite-admin\" on your client."
+
+# FIXME: There will need to be some type of documentation here?
+
 
