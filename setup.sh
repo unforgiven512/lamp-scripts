@@ -164,7 +164,7 @@ a2enmod rewrite
 ### USE THIS CHUNK ###
 function install_lamp_fcgid {
 #Install LAMP with mpm-worker and fastcgi, adapted from typo3's tutorial.
-aptitude -y install libapache2-mod-fcgid apache2-mpm-worker php5-cgi php5-suhosin php-apc php5-mysql php5-dev php5-curl php5-gd php5-imagick php5-mcrypt php5-memcache php5-mhash php5-pspell php5-snmp php5-sqlite php5-xmlrpc php5-xsl
+aptitude -y install libapache2-mod-fcgid apache2-mpm-worker php5-cgi php5-suhosin php-apc php5-mysql php5-dev php5-curl php5-gd php5-imagick php5-mcrypt php5-memcache php5-mhash php5-pspell php5-snmp php5-sqlite php5-xmlrpc php5-xsl apache2-suexec
 aptitude -y install awstats imagemagick
 
 a2dismod php4
@@ -174,6 +174,7 @@ a2enmod actions
 a2enmod fcgid
 a2enmod ssl
 a2enmod rewrite
+a2enmod suexec
 
 #Limit number of fcgi processes allowed and other fcgi settings. For a 512MB VPS, 5-10 is a good number. 
 cat > /etc/apache2/mods-available/fcgid.conf <<EOF
