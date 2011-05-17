@@ -79,7 +79,7 @@ sed -i 's/PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
 /etc/init.d/ssh reload
 
 # reconfigure /etc/adduser.conf to secure user's home directories on creation
-sed -i 's/^DIR_MODE=[0-9]*/DIRMODE=0750/' /etc/adduser.conf
+sed -i 's/^DIR_MODE=[0-9]*/DIR_MODE=0750/' /etc/adduser.conf
 
 #Set hostname and FQDN
 sed -i 's/'${SERVER_IP}'.*/'${SERVER_IP}' '${HOSTNAME_FQDN}' '${HOSTNAME}'/' /etc/hosts
