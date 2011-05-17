@@ -185,17 +185,21 @@ cat > /etc/apache2/mods-available/fcgid.conf <<EOF
 #</IfModule>
 
 <IfModule mod_fcgid.c>
-    AddHandler fcgid-script .fcgi
-    SocketPath /var/lib/apache2/fcgid/sock
+	AddHandler fcgid-script .fcgi
+	SocketPath /var/lib/apache2/fcgid/sock
 
-    #Maximum number of PHP processes
-    MaxProcessCount 5
+	#Maximum number of PHP processes
+	MaxProcessCount 5
 
-    # Communication timeout: Default value is 20 seconds
-    IPCCommTimeout 60
+	# Communication timeout (default: 20)
+	IPCCommTimeout 60
 
-    # Connection timeout: Default value is 3 seconds
-    #IPCConnectTimeout 3
+	# Connection timeout (default: 3)
+	#IPCConnectTimeout 3
+
+	# Maximum request length (upload size) (default: 131072 (128KB))
+	# Set to 10485760 (10MB)
+	MaxRequestLen 10485760
 </IfModule>
 EOF
 
