@@ -24,7 +24,7 @@ source ./constants.conf
 
 ## initialize some variables
 # logrotate postrotate
-POSTROTATE_CMD='/etc/init.d/apache2 reload > /dev/null'
+postrotate_cmd='/etc/init.d/apache2 reload > /dev/null'
 
 # phpmyadmin directory (NOTE: THIS SECTION MAY NOT BE NECESSARY)
 # NOTE: for apt-get installed version:	/usr/share/phpmyadmin/
@@ -42,10 +42,10 @@ VHOST_ROOT="/var/log/www/*/*/" ## not actually the vhost root, but it is where a
 function initialize_variables {
 # set up path variables
 domain_path="/srv/www/$domain_owner/$domain"
-DOMAIN_LOG_PATH="/var/log/www/$domain_owner/$domain"
-DOMAIN_CONFIG_PATH="/etc/apache2/sites-available/$domain"
+domain_log_path="/var/log/www/$domain_owner/$domain"
+domain_config_path="/etc/apache2/sites-available/$domain"
 # NOTE: may not be needed
-DOMAIN_ENABLED_PATH="/etc/apache2/sites-enabled/$domain"
+domain_enabled_path="/etc/apache2/sites-enabled/$domain"
 
 # setup awstats command to be placed in logrotate file
 if [ $AWSTATS_ENABLE = 'yes' ]; then
@@ -196,7 +196,7 @@ $domain_log_path/apache2/*.log {
 		$AWSTATS_CMD
 	endscript
 	postrotate
-		$POSTROTATE_CMD
+		$postrotate_cmd
 	endscript
 }
 EOF
