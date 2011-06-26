@@ -49,7 +49,7 @@ DOMAIN_ENABLED_PATH="/etc/apache2/sites-enabled/$domain"
 
 # setup awstats command to be placed in logrotate file
 if [ $AWSTATS_ENABLE = 'yes' ]; then
-	AWSTATS_CMD="/usr/share/awstats/tools/awstats_buildstaticpages.pl -update -config=$DOMAIN -dir=$DOMAIN_LOG_PATH/awstats -awstatsprog=/usr/lib/cgi-bin/awstats.pl > /dev/null"
+	AWSTATS_CMD="/usr/share/awstats/tools/awstats_buildstaticpages.pl -update -config=$domain -dir=$domain_log_path/awstats -awstatsprog=/usr/lib/cgi-bin/awstats.pl > /dev/null"
 else # NOTE: may not be needed
 	AWSTATS_CMD=""
 fi
@@ -63,7 +63,7 @@ LOGROTATE_FILE="domain-$domain"
 function add_domain {
 # create public_html and log directories for domain
 mkdir -p $domain_path
-mkdir -p $DOMAIN_LOG_PATH/apache2
+mkdir -p $domain_log_path/apache2
 
 # create placeholder index.html
 cat > $domain_path/index.html << EOF
@@ -81,8 +81,8 @@ EOF
 
 # setup awstats directories
 if [ $AWSTATS_ENABLE = 'yes' ]; then
-	mkdir -p $DOMAIN_LOG_PATH/{awstats,awstats/.data}
-	cd $DOMAIN_LOG_PATH/awstats/
+	mkdir -p $domain_log_path/{awstats,awstats/.data}
+	cd $domain_log_path/awstats/
 	ln -s awstats.$domain.html index.html
 	ln -s /usr/share/awstats/icon awstats-icon
 	cd - &> /dev/null
@@ -90,21 +90,21 @@ fi
 
 # set permissions
 chown -R $domain_owner:$domain_owner $domain_path
-chown -R $domain_owner:$domain_owner $DOMAIN_LOG_PATH
+chown -R $domain_owner:$domain_owner $domain_log_path
 # NOTE: these following lines may be necessary
 #chmod 711 /srv/www/$domain_owner
 #chmod 711 $domain_path
 
 # build virtualhost entry
-cat > $DOMAIN_CONFIG_PATH << EOF
+cat > $domain_config_path << EOF
 <VirtualHost *:80>
 
 	ServerName $domain
 	ServerAlias www.$domain
 	ServerAdmin webmaster@$domain
 	DocumentRoot $domain_path
-	ErrorLog $DOMAIN_LOG_PATH/apache2/error.log
-	CustomLog $DOMAIN_LOG_PATH/apache2/access.log combined
+	ErrorLog $domain_log_path/apache2/error.log
+	CustomLog $domain_log_path/apache2/access.log combined
 
 	SuexecUserGroup $domain_owner $domain_owner
 	Action php-fcgi /fcgi-bin/php-fcgi-wrapper
@@ -132,8 +132,8 @@ cat > $DOMAIN_CONFIG_PATH << EOF
 	ServerAlias www.$domain
 	ServerAdmin webmaster@$domain
 	DocumentRoot $domain_path
-	ErrorLog $DOMAIN_LOG_PATH/apache2/error.log
-	CustomLog $DOMAIN_LOG_PATH/apache2/access.log combined
+	ErrorLog $domain_log_path/apache2/error.log
+	CustomLog $domain_log_path/apache2/access.log combined
 
 	SuexecUserGroup $domain_owner $domain_owner
 	Action php-fcgi /fcgi-bin/php-fcgi-wrapper
@@ -178,12 +178,12 @@ sed -i 's/^LogFormat=.*/LogFormat=1/' /etc/awstats/awstats.$domain.conf
 sed -i 's/^DirData=.*/\# deleted DirData parameter -- appended at the bottom of this config file instead./' /etc/awstats/awstats.$domain.conf
 sed -i 's/^DirIcons=.*/DirIcons=".\/awstats-icon"/' /etc/awstats/awstats.$domain.conf
 sed -i '/Include \"\/etc\/awstats\/awstats\.conf\.local\"/ d' /etc/awstats/awstats.$domain.conf
-echo "LogFile=\"$DOMAIN_LOG_PATH/apache2/access.log\"" >> /etc/awstats/awstats.$domain.conf
-echo "DirData=\"$DOMAIN_LOG_PATH/awstats/.data\"" >> /etc/awstats/awstats.$domain.conf
+echo "LogFile=\"$domain_log_path/apache2/access.log\"" >> /etc/awstats/awstats.$domain.conf
+echo "DirData=\"$domain_log_path/awstats/.data\"" >> /etc/awstats/awstats.$domain.conf
 
 # add new logrotate entry for domain
-cat > /etc/logrotate.d/$LOGROTATE_FILE << EOF
-$DOMAIN_LOG_PATH/apache2/*.log {
+cat > /etc/logrotate.d/$logrotate_file << EOF
+$domain_log_path/apache2/*.log {
 	daily
 	missingok
 	rotate 10
@@ -233,19 +233,19 @@ sleep 1
 rm -rf $domain_path
 
 # delete vhost file
-echo -e "* Removing vhost file: \033[1m$DOMAIN_CONFIG_PATH\033[0m"
+echo -e "* Removing vhost file: \033[1m$domain_config_path\033[0m"
 sleep 1
-rm -rf $DOMAIN_CONFIG_PATH
+rm -rf $domain_config_path
 
 # delete log directory
-echo -e "* Removing log directory: \033[1m$DOMAIN_LOG_PATH\033[0m"
+echo -e "* Removing log directory: \033[1m$domain_log_path\033[0m"
 sleep 1
-rm -rf $DOMAIN_LOG_PATH
+rm -rf $domain_log_path
 
 # delete logrotate file
-echo -e "* Removing logrotate file: \033[1m/etc/logrotate.d/$LOGROTATE_FILE\033[0m"
+echo -e "* Removing logrotate file: \033[1m/etc/logrotate.d/$logrotate_file\033[0m"
 sleep 1
-rm -rf /etc/logrotate.d/$LOGROTATE_FILE
+rm -rf /etc/logrotate.d/$logrotate_file
 } # end function 'remove_domain' #
 
 
@@ -289,7 +289,7 @@ fi
 
 ## check if the domain config already exists in /etc/apache2/sites-available/
 function check_domain_config_exists {
-if [ -e "$DOMAIN_CONFIG_PATH" ]; then
+if [ -e "$domain_config_path" ]; then
 	return 0
 else
 	return 1
@@ -426,7 +426,7 @@ add)
 	# check if domain config already exists
 	check_domain_config_exists
 	if [ $? -eq 0 ]; then
-		echo -e "\033[31;1mERROR: $DOMAIN_CONFIG_PATH already exists. Please remove before proceeding.\033[0m"
+		echo -e "\033[31;1mERROR: $domain_config_path already exists. Please remove before proceeding.\033[0m"
 		exit 1
 	fi
 
@@ -475,7 +475,7 @@ rm)
 	# check if domain config exists
 	check_domain_config_exists
 	if [ $? -ne 0 ]; then
-		echo -e "\033[31;1mERROR: $DOMAIN_CONFIG_PATH does not exist, exiting.\033[0m"
+		echo -e "\033[31;1mERROR: $domain_config_path does not exist, exiting.\033[0m"
 		echo -e " - \033[34;1mNOTE:\033[0m \033[34mThere may be files left over. Please check manually to ensure everything is deleted.\033[0m"
 		exit 1
 	fi
