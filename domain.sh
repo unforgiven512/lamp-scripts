@@ -55,7 +55,7 @@ else # NOTE: may not be needed
 fi
 
 # name of the logrotate file
-LOGROTATE_FILE="domain-$domain"
+logrotate_file="domain-$domain"
 } # end function 'initialize_variables' #
 
 
