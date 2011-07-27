@@ -387,7 +387,22 @@ sed -i 's/^\(memory_limit = \)[0-9]*M/\164M/' $php_ini_dir
 sed -i 's/^\(post_max_size = \)[0-9]*M/\125M/' $php_ini_dir
 sed -i 's/^\(upload_max_filesize = \)[0-9]*M/\125M/' $php_ini_dir
 sed -i 's/disable_functions =/disable_functions = exec,system,passthru,shell_exec,escapeshellarg,escapeshellcmd,proc_close,proc_open,dl,popen,show_source/' $php_ini_dir
+sed -i 's/;error_log = php_errors.log/error_log = \/var\/log\/php.err/' $php_ini_dir
 
+# Insert logrotate entry for php error log
+touch /etc/logrotate.d/php
+cat > /etc/logrotate.d/php << EOF
+/var/log/php.err {
+	daily
+	missingok
+	rotate 10
+	compress
+	delaycompress
+	notifempty
+	create 0640 root adm
+	sharedscripts
+}
+EOF
 
 if [ -e "/etc/apache2/mods-enabled/fastcgi.conf" ]; then
 /etc/init.d/php5-fpm restart
