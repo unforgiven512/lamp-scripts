@@ -589,6 +589,12 @@ apache2ctl restart
 
 }
 
+function secure_filesystem {
+# Secure directories containing sensitive information
+chmod 0600 /etc/dbconfig-common/
+
+}
+
 
 ####Main program begins####
 #Show Menu#
