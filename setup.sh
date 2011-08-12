@@ -99,69 +99,6 @@ aptitude -y install vim htop lynx dnsutils unzip byobu
 
 } #end function basic_server_setup
 
-### DELETE THIS CHUNK ###
-function setup_apt {
-
-#No longer necessary to use the line below for Debian 6 it seems...
-#echo 'APT::Default-Release "stable";' >>/etc/apt/apt.conf
-
-#Add Unstable, Testing repositories and configure pin priority to favor Stable packages
-#Mainly to allow installation of php5-fpm package that is not in Stable repo
-
-cp /etc/apt/{sources.list,sources.list.bak}
-cat > /etc/apt/sources.list <<EOF
-#Stable
-deb http://ftp.$APT_REGION.debian.org/debian $RELEASE main non-free contrib
-deb-src  http://ftp.$APT_REGION.debian.org/debian $RELEASE main non-free contrib
-
-#Testing
-deb http://ftp.$APT_REGION.debian.org/debian testing main non-free contrib
-deb-src  http://ftp.$APT_REGION.debian.org/debian testing main non-free contrib
-
-#Sid
-deb http://ftp.$APT_REGION.debian.org/debian unstable main non-free contrib
-deb-src  http://ftp.$APT_REGION.debian.org/debian unstable main non-free contrib
-
-#Security
-deb http://security.debian.org/ $RELEASE/updates main contrib non-free
-deb-src http://security.debian.org/ $RELEASE/updates main contrib non-free
-EOF
-
-cat > /etc/apt/preferences <<EOF
-Package: *
-Pin: release a=$RELEASE
-Pin-Priority: 700
-
-Package: *
-Pin: release a=testing
-Pin-Priority: 650
-
-Package: *
-Pin: release a=unstable
-Pin-Priority: 600
-EOF
-
-aptitude update
-
-} #end function setup_apt
-
-### DELETE CHUNK ###
-function install_lamp {
-#Install LAMP
-aptitude -y install apache2 libapache2-mod-php5 php5-suhosin php-apc php5-mysql php5-dev php5-curl php5-gd php5-imagick php5-mcrypt php5-memcache php5-mhash php5-pspell php5-snmp php5-sqlite php5-xmlrpc php5-xsl
-aptitude -y install awstats imagemagick
-
-a2dismod php4
-a2dismod fcgid
-a2dismod fastcgi
-a2dismod actions
-a2enmod php5
-a2enmod ssl
-a2enmod rewrite
-
-} #end function install_lamp
-
-### USE THIS CHUNK ###
 function install_lamp_fcgid {
 #Install LAMP with mpm-worker and fastcgi, adapted from typo3's tutorial.
 aptitude -y install libapache2-mod-fcgid apache2-mpm-worker php5-cgi php5-suhosin php-apc php5-mysql php5-dev php5-curl php5-gd php5-imagick php5-mcrypt php5-memcache php5-mhash php5-pspell php5-snmp php5-sqlite php5-xmlrpc php5-xsl apache2-suexec
@@ -255,58 +192,6 @@ ln -s /usr/bin/php5-cgi /var/www/fcgi-bin.d/php5-default/php-fcgi-wrapper
 } #end function install_lamp_fcgid
 
 
-### DELETE CHUNK ###
-function install_lamp_phpfpm {
-#Install LAMP with mpm-worker and fastcgi and php-fpm
-aptitude -y install libapache2-mod-fastcgi apache2-mpm-worker php5-cgi php5-suhosin php-apc php5-mysql php5-dev php5-curl php5-gd php5-imagick php5-mcrypt php5-memcache php5-mhash php5-pspell php5-snmp php5-sqlite php5-xmlrpc php5-xsl
-aptitude -y install awstats imagemagick
-aptitude install php5-fpm
-
-a2dismod php4
-a2dismod php5
-a2dismod fcgid
-a2enmod actions
-a2enmod fastcgi
-a2enmod ssl
-a2enmod rewrite
-
-#cp /etc/apache2/mods-available/{fastcgi.conf,fastcgi.conf.bak}
-cat > /etc/apache2/mods-available/fastcgi.conf <<EOF
-#Original fastcgi.conf contents
-#<IfModule mod_fastcgi.c>
-#  AddHandler fastcgi-script .fcgi
-#  #FastCgiWrapper /usr/lib/apache2/suexec
-#  FastCgiIpcDir /var/lib/apache2/fastcgi
-#</IfModule>
-
-<IfModule mod_fastcgi.c>
-    FastCgiIpcDir /var/lib/apache2/fastcgi
-    FastCGIExternalServer /srv/www/fcgi-bin.d/php5-fpm -flush -host 127.0.0.1:9000
-
-    Alias /php5-fcgi /srv/www/fcgi-bin.d
-    AddHandler php-fpm .php
-    Action php-fpm /php5-fcgi/php5-fpm
-    AddType application/x-httpd-php .php
-
-    <Directory  "/srv/www/fcgi-bin.d">
-    Order deny,allow
-    Deny from all
-        <Files "php5-fpm">
-        Order allow,deny
-        Allow from all
-        </Files>
-    </Directory>
-</IfModule>
-EOF
-
-#Forms a symbolic link to the PHP5-FPM binary
-mkdir -p /srv/www/fcgi-bin.d
-ln -s /usr/sbin/php5-fpm  /srv/www/fcgi-bin.d/
-/etc/init.d/php5-fpm restart
-
-} #end function install_lamp_phpfpm
-
-
 function install_mysql {
 #Install mysql
 echo "mysql-server-5.1 mysql-server/root_password password $MYSQL_ROOT_PASSWORD" | debconf-set-selections
@@ -387,26 +272,6 @@ sed -i 's/^\(memory_limit = \)[0-9]*M/\164M/' $php_ini_dir
 sed -i 's/^\(post_max_size = \)[0-9]*M/\125M/' $php_ini_dir
 sed -i 's/^\(upload_max_filesize = \)[0-9]*M/\125M/' $php_ini_dir
 sed -i 's/disable_functions =/disable_functions = exec,system,passthru,shell_exec,escapeshellarg,escapeshellcmd,proc_close,proc_open,dl,popen,show_source/' $php_ini_dir
-sed -i 's/;error_log = php_errors.log/error_log = \/var\/log\/php.err/' $php_ini_dir
-
-# Insert logrotate entry for php error log
-touch /etc/logrotate.d/php
-cat > /etc/logrotate.d/php << EOF
-/var/log/php.err {
-	daily
-	missingok
-	rotate 10
-	compress
-	delaycompress
-	notifempty
-	create 0640 root adm
-	sharedscripts
-}
-EOF
-
-if [ -e "/etc/apache2/mods-enabled/fastcgi.conf" ]; then
-/etc/init.d/php5-fpm restart
-fi
 
 #Generating self signed SSL certs for securing phpmyadmin, script logins
 echo -e " "

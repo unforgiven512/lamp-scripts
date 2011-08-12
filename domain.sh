@@ -64,6 +64,7 @@ function add_domain {
 # create public_html and log directories for domain
 mkdir -p $domain_path
 mkdir -p $domain_log_path/apache2
+mkdir -p $domain_log_path/php5
 
 # create placeholder index.html
 cat > $domain_path/index.html << EOF
@@ -77,6 +78,42 @@ cat > $domain_path/index.html << EOF
 		<p><b>Note to visitors:</b> Check back frequently for updates!</p>
 	</body>
 </html>
+EOF
+
+# create user php.ini (./.user.ini)
+cat > $domain_path/.user.ini << EOF
+# This controls the level of errors logged. The default value
+# (E_ALL & ~E_DEPRECATED) logs all errors except E_DEPRECATED.
+# For development purposes, it may be useful to use the value
+# "E_ALL & E_STRICT". If you notice a lot of log spam, it may
+# be useful to append " & ~E_NOTICE" to remove some of the
+# less important information from your logs.
+error_reporting = E_ALL & ~E_DEPRECATED
+
+# This controls the inline display of error messages on your page.
+# It is recommended to leave this "Off" for production servers,
+# and use the error_log feature to keep your errors out of the
+# public eye. However, it can be useful to turn this "On" for development.
+display_errors = Off
+
+# This controls the logging of errors to a file on your system. It is
+# recommended to leave this "On" for production servers. If you feel
+# that you do not need information about the errors in your scripts,
+# or you are using "display_errors", you may turn this "Off".
+log_errors = On
+
+# This controls the maximum length of any given error message. This will
+# prevent things from getting "out of control" if an error message is
+# in an infinite loop, or something similar. It is recommended to leave
+# this the default value, however, you can change it if you notice your
+# error messages are getting "cut off".
+log_errors_max_len = 1024
+
+# This is the path to your PHP error log. It must be readable and
+# writable by your user account. It is *HIGHLY* recommended to leave
+# this value as the default, as it will log errors to the log directory
+# within your home directory, and logs will automatically be rotated.
+error_log = $domain_log_path/php5/error.log
 EOF
 
 # setup awstats directories
@@ -198,6 +235,17 @@ $domain_log_path/apache2/*.log {
 	postrotate
 		$postrotate_cmd
 	endscript
+}
+
+$domain_log_path/php5/*.log {
+	daily
+	missingok
+	rotate 10
+	compress
+	delaycompress
+	notifempty
+	create 0640 $domain_owner adm
+	sharedscripts
 }
 EOF
 
